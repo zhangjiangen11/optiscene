@@ -15,3 +15,8 @@ A simple tool to quickly combine meshes which have the same Mesh Resource attach
 
 ### Notes
 - Only MeshInstance3Ds with **no child Node** and **no script attached to them** will combine. This is a safety measure to not mess up your SceneTree.
+
+## Installation Instructions
+1. Clone this repository
+2. Unzip the *addons* folder into your project
+3. Activate the addon in your project settings
