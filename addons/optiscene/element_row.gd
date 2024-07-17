@@ -1,7 +1,7 @@
 @tool
 extends MarginContainer
 
-@onready var combine: CheckBox = $HBoxContainer/VBoxContainer/Combine
+@onready var combine: CheckButton = $HBoxContainer/VBoxContainer/Combine
 @onready var mesh_instance:MeshInstance3D = $HBoxContainer/ViewportCon/SubViewport/Node3D/MeshInstance
 @onready var action_explanation: Label = $HBoxContainer/VBoxContainer/ActionExplanation
 @onready var amount_label: Label = $HBoxContainer/Amount
@@ -9,6 +9,8 @@ extends MarginContainer
 
 const SEPERATE_MESSAGE:String = "Keep Meshes seperate"
 const COMBINE_MESSAGE:String = "Combine Meshes into Multimesh"
+
+const NO_COMBINATIONS_MESSAGE:String = "No meshes selected"
 
 var instances:Array[MeshInstance3D] = []
 
@@ -22,7 +24,6 @@ func _ready() -> void:
 
 
 func set_mesh_instances(mesh_instances:Array[MeshInstance3D]) -> void:
-	print("These are the instances: ", mesh_instances)
 	instances = mesh_instances
 	mesh_instance.mesh = mesh_instances[0].mesh
 	amount_label.text = "Amount: " + str(mesh_instances.size())
@@ -30,10 +31,10 @@ func set_mesh_instances(mesh_instances:Array[MeshInstance3D]) -> void:
 
 func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
 	if !combine.button_pressed:
-		print_rich("\t[color=darkgreen]Marked as seperate. Will not combine[/color]")
+		print_rich("\t[color=darkgreen]Marked as seperate. Will not combine...[/color]")
 		return
 	if mesh_instances == []:
-		print_rich("\t[color=yellow]Found no meshes. Skipping this mesh...[/color]")
+		print_rich("\t[color=orange]Found no meshes. Skipping this mesh...[/color]")
 		return
 	var multimesh:MultiMesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
@@ -50,5 +51,5 @@ func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
 	multimesh_instance.name = mesh_instances[0].name
 	parent.add_child(multimesh_instance, true)
 	multimesh_instance.set_owner(get_tree().edited_scene_root)
-	print_rich("\t[color=cyan]Added MultiMeshInstance3D...")
+	print_rich("\t[color=cyan]Replaced", mesh_instances.size(), " MeshInstance3Ds with 1 MultiMeshInstance3D...")
 	

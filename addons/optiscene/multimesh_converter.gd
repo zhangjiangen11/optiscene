@@ -2,8 +2,13 @@
 extends Window
 
 var inspector_plugin:EditorInspectorPlugin
+var selections:Array[bool] = []
 
 func _ready() -> void:
+	var new_stylebox:StyleBoxFlat = StyleBoxFlat.new()
+	new_stylebox.bg_color = get_theme_color("base_color", "Editor")
+	$PanelCon.add_theme_stylebox_override("panel", new_stylebox)
+	%Finished.set_deferred("disabled", true)
 	%CombinableMessage.show()
 	get_child(0).theme = ThemeDB.get_default_theme()
 	%Finished.pressed.connect(func():
@@ -18,22 +23,36 @@ func _ready() -> void:
 	close_requested.connect(func():
 		queue_free())
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action("ui_cancel") and event.is_pressed():
+		close_requested.emit()
+
+
 
 
 func set_mesh_collections(mesh_collections:Array[Array]):
 	if mesh_collections.size() != 0:
+		%Finished.disabled = false
 		%CombinableMessage.hide()
 	else:
 		return
 	for element in %Elements.get_children():
 		element.queue_free()
-		print("mesh_collections: ", mesh_collections)
 	for collection in mesh_collections:
-		print("Iterating over collection: ", collection)
 		for similars in collection:
-			print("Iterating over similars: ", similars)
+			selections.append(false)
 			var new_element:Control = %ElementSample.duplicate()
 			new_element.show()
 			new_element.get_node("HBoxContainer/ViewportCon/SubViewport").world_3d = World3D.new()
 			%Elements.add_child(new_element)
+			new_element.get_node("HBoxContainer/VBoxContainer/Combine").toggled.connect(func(toggled:bool):
+				selections[new_element.get_index()] = toggled
+				var all_negative:bool = true
+				for i in selections:
+					if i == true:
+						all_negative = false
+						break
+				%Finished.disabled = all_negative
+					
+				)
 			new_element.set_mesh_instances(similars)
