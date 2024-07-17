@@ -7,7 +7,7 @@ extends MarginContainer
 @onready var amount_label: Label = $HBoxContainer/Amount
 
 
-const SEPERATE_MESSAGE:String = "Don't combine Meshes into Multimesh"
+const SEPERATE_MESSAGE:String = "Keep Meshes seperate"
 const COMBINE_MESSAGE:String = "Combine Meshes into Multimesh"
 
 var instances:Array[MeshInstance3D] = []
