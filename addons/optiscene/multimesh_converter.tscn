@@ -7131,12 +7131,6 @@ theme_override_constants/margin_bottom = 3
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelCon/Internals/TopOptions"]
 layout_mode = 2
 
-[node name="CenterMultimesh" type="CheckBox" parent="PanelCon/Internals/TopOptions/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Activate this to center the Multimesh in the middle of all the meshes"
-text = "Center Multimesh"
-
 [node name="Label" type="Label" parent="PanelCon/Internals/TopOptions/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
