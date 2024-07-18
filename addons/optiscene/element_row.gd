@@ -5,12 +5,15 @@ extends MarginContainer
 @onready var mesh_instance:MeshInstance3D = $HBoxContainer/ViewportCon/SubViewport/Node3D/MeshInstance
 @onready var action_explanation: Label = $HBoxContainer/VBoxContainer/ActionExplanation
 @onready var amount_label: Label = $HBoxContainer/Amount
+@onready var keep_collisions: CheckButton = $HBoxContainer/VBoxContainer/KeepCollisions
 
 
 const SEPERATE_MESSAGE:String = "Keep Meshes seperate"
 const COMBINE_MESSAGE:String = "Combine Meshes into Multimesh"
 
 const NO_COMBINATIONS_MESSAGE:String = "No meshes selected"
+
+var has_collisions:bool = false
 
 var instances:Array[MeshInstance3D] = []
 
@@ -24,12 +27,19 @@ func _ready() -> void:
 
 
 func set_mesh_instances(mesh_instances:Array[MeshInstance3D]) -> void:
+	for i in mesh_instances:
+		if i.get_child_count() > 0 and i.get_child(0) is StaticBody3D:
+			has_collisions = true
+			break
+	if !has_collisions:
+		keep_collisions.set_deferred("disabled", true)
 	instances = mesh_instances
 	mesh_instance.mesh = mesh_instances[0].mesh
 	amount_label.text = "Amount: " + str(mesh_instances.size())
 	
 
 func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
+	print("before main body of function")
 	if !combine.button_pressed:
 		print_rich("\t[color=darkgreen]Marked as seperate. Will not combine...[/color]")
 		return
@@ -46,10 +56,44 @@ func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
 	var multimesh_instance:MultiMeshInstance3D = MultiMeshInstance3D.new()
 	multimesh_instance.multimesh = multimesh
 	var parent:Node = mesh_instances[0].get_parent()
+	var collisions:Array[CollisionShape3D] = []
+	if keep_collisions.button_pressed:
+		print_rich("\t[color=cyan]Keeping Collisions:[/color]")
+		var physics_material:PhysicsMaterial
+		for i in mesh_instances:
+			if i.get_child_count() > 0 and i.get_child(0) is StaticBody3D:
+				print_rich("\t[color=green]Mesh had StaticBody3D as a child! Collecting all collision Nodes...[/color]")
+				for collision_object in i.get_child(0).get_children():
+					#print_rich("\n\n[color=white]Iterating over child: ", collision_object, "...[/color]")
+					if collision_object is CollisionShape3D:
+						physics_material = i.get_child(0).physics_material_override
+						var pos:Vector3 = collision_object.global_position
+						collisions.append(collision_object)
+						print_rich("\t\t[color=green]Added CollisionObject3D...[/color]")
+			else:
+				print_rich("\t[color=darkred]Mesh Node didn't have StaticBody as child...[/color]")
+		if collisions.size() > 0:
+			var body:StaticBody3D = StaticBody3D.new()
+			if physics_material:
+				body.physics_material_override = physics_material
+			for col in collisions:
+				col.reparent(body, true)
+			multimesh_instance.add_child(body, true)
+			
 	for instance in mesh_instances:
 		instance.queue_free()
 	multimesh_instance.name = mesh_instances[0].name
 	parent.add_child(multimesh_instance, true)
 	multimesh_instance.set_owner(get_tree().edited_scene_root)
+	if multimesh_instance.get_child_count() == 1:
+		multimesh_instance.get_child(0).global_transform = multimesh_instance.get_parent_node_3d().global_transform
+		multimesh_instance.get_child(0).global_position -= (multimesh_instance.global_position)
+		multimesh_instance.get_child(0).global_rotation -= multimesh_instance.get_parent_node_3d().global_rotation
+		multimesh_instance.get_child(0).scale = Vector3.ONE / multimesh_instance.get_parent_node_3d().scale
+		multimesh_instance.get_child(0).set_owner(get_tree().edited_scene_root)
+		for child:CollisionShape3D in multimesh_instance.get_child(0).get_children():
+			child.set_owner(get_tree().edited_scene_root)
+			#child.global_position -= multimesh_instance.get_parent().global_position
+		
 	print_rich("\t[color=cyan]Replaced", mesh_instances.size(), " MeshInstance3Ds with 1 MultiMeshInstance3D...")
 	
