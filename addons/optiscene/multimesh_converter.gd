@@ -1,5 +1,6 @@
 @tool
 extends Window
+class_name MultiMeshConverterWindow
 
 var inspector_plugin:EditorInspectorPlugin
 var selections:Array[bool] = []

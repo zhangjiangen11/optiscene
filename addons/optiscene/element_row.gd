@@ -38,8 +38,7 @@ func set_mesh_instances(mesh_instances:Array[MeshInstance3D]) -> void:
 	amount_label.text = "Amount: " + str(mesh_instances.size())
 	
 
-func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
-	print("before main body of function")
+func add_multimeshes(mesh_instances = instances) -> void:
 	if !combine.button_pressed:
 		print_rich("\t[color=darkgreen]Marked as seperate. Will not combine...[/color]")
 		return
@@ -77,11 +76,10 @@ func add_multimeshes(mesh_instances:Array[MeshInstance3D] = instances) -> void:
 			if physics_material:
 				body.physics_material_override = physics_material
 			for col in collisions:
-				col.reparent(body, true)
+				var duplicat:CollisionShape3D = col.duplicate()
+				body.add_child(duplicat)
 			multimesh_instance.add_child(body, true)
 			
-	for instance in mesh_instances:
-		instance.queue_free()
 	multimesh_instance.name = mesh_instances[0].name
 	parent.add_child(multimesh_instance, true)
 	multimesh_instance.set_owner(get_tree().edited_scene_root)
